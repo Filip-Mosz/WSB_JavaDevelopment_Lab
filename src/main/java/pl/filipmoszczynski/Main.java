@@ -85,22 +85,28 @@ public class Main {
             int round = 0;
             int numberToGuess = 0;
 
-            if (numberToGuess < 0 || numberToGuess > max) {
-                System.out.println("Podałeś liczbę spoza zakresu");
-                System.out.println("komputer dostaje punkt");
-                player.addPoints(1);
-                round++;
-            }
 
-            do { //todo: kontynuować od tego miejsca, wciąż punkt 1.
-                System.out.printf("Podaj liczbę z zakresu 0-%s, którą ma odgadnąć komputer: %nOszukiwanie będzie karane%n", max);
-                try {
-                    numberToGuess = new Scanner(System.in).nextInt();
-                } catch (Exception e) {
-                    System.out.println("Nie wprowadziłeś liczby całkowitej. Komputer dostaje punkt");
+            do { //todo: po wprowadzeniu niewłaściwej liczby kontynuuje
+
+                    System.out.printf("Podaj liczbę z zakresu 0-%s, którą ma odgadnąć komputer: %nOszukiwanie będzie karane%n", max);
+                    try {
+                        numberToGuess = new Scanner(System.in).nextInt();
+                    } catch (Exception e) {
+                        System.out.println("Nie wprowadziłeś liczby całkowitej. Komputer dostaje punkt");
+                        player.addPoints(1);
+                        round++;
+                        continue;
+                    }
+
+
+                if (numberToGuess < 0 || numberToGuess > max) {
+                    System.out.println("Podałeś liczbę spoza zakresu");
+                    System.out.println("komputer dostaje punkt");
                     player.addPoints(1);
                     round++;
+                    continue;
                 }
+
                 game.round(round+1, max, numberToGuess);
 
                 boolean goOn = true;
