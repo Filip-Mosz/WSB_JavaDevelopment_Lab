@@ -1,11 +1,15 @@
 package pl.filipmoszczynski;
 
-public class Gamer {
-    final String nick;
-    int points;
+public class Player {
+    private final String nick;
+    private int points;
 
-    public Gamer(String nick) {
+    public Player(String nick) {
         this.nick = nick;
+    }
+    public Player(String nick, int points) {
+        this.nick = nick;
+        this.points = points;
     }
 
     public String getNick() {
