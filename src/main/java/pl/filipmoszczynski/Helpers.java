@@ -1,8 +1,6 @@
 package pl.filipmoszczynski;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public abstract class Helpers {
     /*
@@ -19,14 +17,13 @@ public abstract class Helpers {
         return "";
     }
 
-    public static void singlePlayerMenu(int max, boolean playGame){//user guesses
+    public static void singlePlayerRound(int max, boolean playGame, Player player){//user guesses
         System.out.println("Witaj w 'Guessing Game'");
 
         System.out.println("Podaj nick gracza ");
 
         String nick = new Scanner(System.in).nextLine();
 
-        Player player = new Player(nick);
         Game game  = new Game(player);
         int round = 0;
 
@@ -90,7 +87,7 @@ public abstract class Helpers {
         int round = 0;
         int numberToGuess = 0;
 
-        do { //todo: punkt 2.
+        do {
 
             System.out.printf("Podaj liczbę z zakresu 0-%s, którą ma odgadnąć komputer: %nOszukiwanie będzie karane%n", max);
             try {
@@ -110,7 +107,7 @@ public abstract class Helpers {
                 continue;
             }
 
-            game.round(round+1, max, numberToGuess);
+            game.roundMachine(round+1, max, numberToGuess);
 
             boolean goOn = true;
             do{
@@ -120,7 +117,7 @@ public abstract class Helpers {
                     goOn = false;
                     playGame = false;
                     game.save(player, game);
-                    System.out.printf("Gra zapisana.%nSumarycznie komputer zdobył %s pkt.", game.getPlayer().getPoints());
+                    System.out.printf("Gra zapisana.%nSumarycznie komputer zdobył %s pkt.", game.getPlayer().getPointsAgainstMachine());
                 }
                 if (answer.equalsIgnoreCase("n")) {
                     goOn = false;
@@ -134,5 +131,68 @@ public abstract class Helpers {
 
         }
         while (playGame);
+    }
+
+    public static void manVsMachine(int max, boolean playGame, Player human) {
+
+        Player machine = new Player("101100");
+        Game game  = new Game(FileManager.getPlayer(human.getNick()));
+        game = game.read(human.getNick());
+        Player man = game.getPlayer();
+        int round = 0;
+        int numberToGuess = 0;
+
+        System.out.println("W tym trybie na zmianę z komputerem zgadujecie liczbę");
+
+        int min = 0;
+        System.out.printf("RUNDA %s  %n", round);
+        int attempt = 0;
+        boolean guessed = false;
+        Player[] players = {machine, man};
+        List<Player> playerList = new ArrayList<>(List.of(players));
+        Collections.shuffle(playerList);
+        players = playerList.toArray(players);
+        numberToGuess = (int)(Math.random() * max + 1);
+        do{
+
+            System.out.println("hint: " + numberToGuess);
+            for (int i = 0; i < players.length; i++) {
+                if (guessed) {
+                    round++;
+                    continue;
+                }
+                Player currentPlayer = players[i];
+                if (currentPlayer.equals(machine)) {
+                    guessed = game.roundMachine(round+1, max, numberToGuess);
+                }else {
+                    System.out.printf("Zgaduje %s%n", players[i].getNick());
+                    guessed = game.roundHuman(round+1, numberToGuess);
+                }
+            }
+            round++;
+        }
+        while(!guessed);
+
+
+        boolean goOn = true;
+        do{
+            System.out.println("Zapisać i zamknąć? [t/n]");
+            String answer = new Scanner(System.in).nextLine();
+            if (answer.equalsIgnoreCase("t")) {
+                goOn = false;
+                playGame = false;
+                game.save(man, game);
+                System.out.printf("Gra zapisana.%nSumarycznie %s zdobył %s pkt.%n", game.getPlayer().getNick() ,game.getPlayer().getPointsAgainstMachine());
+                System.out.printf("Komputer zdobył sumarycznie %s punktów%n%n", game.getPlayer().getMachinePoints());
+            }
+            if (answer.equalsIgnoreCase("n")) {
+                goOn = false;
+            }
+            if (!answer.equalsIgnoreCase("n") && !answer.equalsIgnoreCase("t")) {
+                System.out.println("Nie rozumiem, użyj 't' lub 'n'");
+            }
+        }
+        while (goOn);
+        round++;
     }
 }

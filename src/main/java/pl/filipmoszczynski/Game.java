@@ -1,10 +1,12 @@
 package pl.filipmoszczynski;
 
+import java.security.spec.RSAOtherPrimeInfo;
 import java.util.Scanner;
 
 public class Game {
     Player player;
     int round;
+    int roundMachine;
 
 
     public Game(String nick) {
@@ -20,8 +22,17 @@ public class Game {
         this.round = round;
     }
 
+    public Game(Player player, int round, int roundMachine) {
+        this.player = player;
+        this.round = round;
+        this.roundMachine = roundMachine;
+    }
+
     public int getRound() {
         return this.round;
+    }
+    public int getRoundMachine() {
+        return this.roundMachine;
     }
 
     public Player getPlayer() {
@@ -31,6 +42,14 @@ public class Game {
     void round(int roundNum, int max) {
         int currNum = (int)(Math.random() * max + 1);
 
+        roundMain(roundNum, currNum, false);
+    }
+
+    boolean roundHuman(int roundNum, int numberToGuess) {
+        return roundMain(roundNum, numberToGuess, true);
+    }
+
+    boolean roundMain(int roundNum, int currNum, boolean againstMachine) {
         System.out.printf("RUNDA %s  %n", roundNum);
         int attempt = 0;
         boolean guessed = false;
@@ -47,7 +66,9 @@ public class Game {
             String pointsText = points == 1 ? "punkt" :"punkty";
             if (guess == currNum) {
                 guessed = true;
-                player.addPoints(points);
+                if (againstMachine) {
+                    player.addPointsAgainstMachine(points);
+                }else{player.addPoints(points);}
             } else {
                 String hint = guess > currNum ? "Za wysoko" : "Za nisko";
                 System.out.println(hint);
@@ -58,14 +79,15 @@ public class Game {
             }
 
             if (attempt == 2 || guessed) {
-                System.out.printf("Zdobywasz %s %s.%n", points, pointsText);
+                System.out.printf("Zdobywasz %s %s.%n%n", points, pointsText);
             }
             attempt++;
         }
-        this.round = roundNum;
+        this.roundMachine = roundNum;
+        return guessed;
     }
 
-    void round(int roundNum, int max , int numberToGuess) {
+    boolean roundMachine(int roundNum, int max , int numberToGuess) {
         int min = 0;
 
         System.out.printf("RUNDA %s  %n", roundNum);
@@ -79,7 +101,7 @@ public class Game {
             String pointsText = points == 1 ? "punkt" :"punkty";
             if (guess == numberToGuess) {
                 guessed = true;
-                player.addPoints(points);
+                player.addMachinePoints(points);
             } else {
                 int hint = guess > numberToGuess ? -1 : 1;
                 if(hint == -1) {
@@ -94,11 +116,17 @@ public class Game {
             }
 
             if (attempt == 2 || guessed) {
-                System.out.printf("Komputer zdobywa %s %s.%n", points, pointsText);
+                System.out.printf("Komputer zdobywa %s %s.%n%n", points, pointsText);
             }
             attempt++;
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                System.out.println("coś nie daje mi spać :(");
+            }
         }
         this.round = roundNum;
+        return guessed;
     }
 
     void save(Player player, Game game) {
@@ -113,7 +141,46 @@ public class Game {
         }
 
         String[] fields = content.split(":");
-        Player playerOut = new Player(nick,Integer.parseInt(fields[0]));
-        return new Game(playerOut, Integer.parseInt(fields[1]));
+        Player playerOut = null;
+        int machineRounds = 0;
+        try {
+            playerOut = new Player(nick, Integer.parseInt(fields[0]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]));
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            switch (fields.length) {
+                case 0:
+                    playerOut = new Player(nick);
+                    break;
+                case 1:
+                    playerOut = new Player(nick, Integer.parseInt(fields[0]), 0, 0);
+                    break;
+                case 2:
+                    playerOut = new Player(nick, Integer.parseInt(fields[0]), 0, 0);
+                case 3:
+                    playerOut = new Player(nick, Integer.parseInt(fields[0]), Integer.parseInt(fields[2]), 0);
+                    break;
+                case 5:
+                    machineRounds = Integer.parseInt(fields[4]);
+                default:
+                    System.out.println("nie wczytane osiagniecia zostały wyzerowane");
+            }
+            System.out.println("Plik zapisu uszkodzony:");
+            switch (fields.length) {
+                case 0:
+                    System.out.println("Plik zapisu uszkodzony:");
+                case 1:
+                    System.out.println("nie wczytano numeru rundy trybu pojedynczego");
+                case 2:
+                    System.out.println("nie wczytano danych trybu przeciwko komputerowi: nie wczytano osiagnięć gracza");
+                case 3:
+                    System.out.println("nie wczytano danych trybu przeciwko komputerowi: nie wczytano osiągnięć komputera");
+                case 4:
+                    System.out.println("nie wczytano danych trybu przeciwko komputerowi: nie wczytano ilości rund z komputerem");
+                default:
+                    System.out.println("nie wczytane osiagniecia zostały wyzerowane");
+            }
+        }
+
+        return new Game(playerOut, Integer.parseInt(fields[1]), machineRounds);
     }
 }

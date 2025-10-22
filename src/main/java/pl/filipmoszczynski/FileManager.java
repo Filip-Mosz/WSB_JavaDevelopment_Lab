@@ -18,7 +18,11 @@ public class FileManager {
 
     static void saveFile(Player player, Game game) {
         Path pathname = Paths.get(saveDirectory + player.getNick() +".txt");
-        String fileContent = player.getPoints() + ":" + game.getRound();
+        String fileContent = player.getPoints() + ":"
+                + game.getRound() + ":"
+                + player.getPointsAgainstMachine() + ":"
+                + player.getMachinePoints() + ":"
+                + game.getRoundMachine();
 
         File file = new File(pathname.toString());
 
