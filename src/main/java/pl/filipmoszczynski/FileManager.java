@@ -22,7 +22,8 @@ public class FileManager {
                 + game.getRound() + ":"
                 + player.getPointsAgainstMachine() + ":"
                 + player.getMachinePoints() + ":"
-                + game.getRoundMachine();
+                + game.getRoundMachine() + ":"
+                + game.getDifficulty();
 
         File file = new File(pathname.toString());
 
