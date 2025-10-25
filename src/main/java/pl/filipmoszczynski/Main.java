@@ -7,8 +7,7 @@ import java.util.Scanner;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-//todo: punkt 3. sprzetestować tryb 1
-//todo 2: punkt 4. zapisywanie poziomu trudności i punktacji na każdym poziomie trudności; poziom trudności jako argument metod i dodatkowe parametry dla klasy game(poziom trudności) i player(punkty wg poziomu trudności)
+
         System.out.println("Witaj w 'Guessing Game'");
         System.out.println("Podaj nick gracza ");
         String nick = new Scanner(System.in).nextLine();

@@ -1,14 +1,16 @@
 package pl.filipmoszczynski;
 
-import java.security.spec.RSAOtherPrimeInfo;
 import java.util.Scanner;
 
 public class Game {
     Player player;
     int round;
-    int roundMachine;
+    int roundAgainstMachine;
     int difficulty;
     int maxNumber;
+
+    private int machineMaxGuess;
+    private int machineMinGuess;
 
     public int getMaxNumber() {
         return maxNumber;
@@ -25,15 +27,23 @@ public class Game {
         };
     }
 
-
+    public Game (String nick) {
+        Game game  = new Game(nick, 1);
+        game = game.read(nick);
+        //game.setDifficulty();
+        this.player = game.getPlayer();
+        this.round = game.getRound();
+        this.roundAgainstMachine = game.getRoundAgainstMachine();
+        this.difficulty = game.getDifficulty();
+    }
 
     public Game(Player player) {
         Game game  = new Game(player.getNick(), 1);
         game = game.read(player.getNick());
         //game.setDifficulty();
-        this.player = game.getPlayer();
+        this.player = player;
         this.round = game.getRound();
-        this.roundMachine = game.getRoundMachine();
+        this.roundAgainstMachine = game.getRoundAgainstMachine();
         this.difficulty = game.getDifficulty();
     }
 
@@ -53,10 +63,10 @@ public class Game {
         this.difficulty = difficulty;
     }
 
-    public Game(Player player, int round, int roundMachine, int difficulty) {
+    public Game(Player player, int round, int roundAgainstMachine, int difficulty) {
         this.player = player;
         this.round = round;
-        this.roundMachine = roundMachine;
+        this.roundAgainstMachine = roundAgainstMachine;
         this.difficulty = difficulty;
     }
 
@@ -64,8 +74,8 @@ public class Game {
         return this.round;
     }
 
-    public int getRoundMachine() {
-        return this.roundMachine;
+    public int getRoundAgainstMachine() {
+        return this.roundAgainstMachine;
     }
 
     public Player getPlayer() {
@@ -150,7 +160,6 @@ public class Game {
                 System.out.println("Nie wprowadziłeś liczby całkowitej. Tracisz punkt");
             }
             int points = 3 - attempt;
-            String pointsText = points == 1 ? "punkt" :"punkty";
             if (guess == currNum) {
                 guessed = true;
                 if (againstMachine) {
@@ -162,15 +171,14 @@ public class Game {
             }
             if (attempt == 2 && !guessed) {
                 points = 0;
-                pointsText = "punktów";
             }
 
             if (attempt == 2 || guessed) {
-                System.out.printf("Zdobywasz %s %s.%n%n", points*this.difficulty, pointsText);
+                System.out.printf("Zdobywasz %s pkt.%n%n", points*this.difficulty);
             }
             attempt++;
         }
-        this.roundMachine = roundNum;
+        this.roundAgainstMachine = roundNum;
         return guessed;
     }
 
@@ -192,9 +200,9 @@ public class Game {
             } else {
                 int hint = guess > numberToGuess ? -1 : 1;
                 if(hint == -1) {
-                    max = guess;
+                    this.machineMaxGuess = guess;
                 }else if(hint == 1) {
-                    min = guess;
+                    this.machineMinGuess = guess;
                 }
             }
             if (attempt == 2 && !guessed) {
@@ -232,61 +240,24 @@ public class Game {
         String[] fields = content.split(":");
         Player playerOut = null;
         Game savedGame = null;
-        int gameDifficulty = 1;
-        int machineRounds = 0;
 
-        try {
-            playerOut = new Player(nick, Integer.parseInt(fields[0]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]));
-            savedGame = new Game(playerOut, Integer.parseInt(fields[1]), Integer.parseInt(fields[4]), Integer.parseInt(fields[5]));
-        }
-        catch (ArrayIndexOutOfBoundsException e) {
-            switch (fields.length) {
-                case 0:
-                    playerOut = new Player(nick);
-                    break;
-                case 1:
-                    playerOut = new Player(nick, Integer.parseInt(fields[0]), 0, 0);
-                    break;
-                case 2:
-                    playerOut = new Player(nick, Integer.parseInt(fields[0]), 0, 0);
-                case 3:
-                    playerOut = new Player(nick, Integer.parseInt(fields[0]), Integer.parseInt(fields[2]), 0);
-                    break;
-                case 4:
-                    playerOut = new Player(nick, Integer.parseInt(fields[0]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]));
-                    break;
-                case 5:
-                    savedGame  = new Game(playerOut, Integer.parseInt(fields[4]), 1);
-                    break;
-                case 6:
-                    savedGame  = new Game(playerOut, machineRounds, Integer.parseInt(fields[5]));
-                    break;
-
-                default:
-                    System.out.println("nie wczytane osiagniecia zostały wyzerowane");
+            try {
+                playerOut = new Player(nick, Integer.parseInt(fields[0]), Integer.parseInt(fields[2]));
+                savedGame = new Game(playerOut, Integer.parseInt(fields[1]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
+                System.out.println("Znaleziono zapis gracza; wczytać? [t/n]\nOdmowa rozpoczyna nową grę, a zapis zostanie usunięty.");
+                if (!Menu.yesNoMenu()) {
+                    Game newGame = new Game(nick,1);
+                    newGame.setDifficulty();
+                    return newGame;
+                }
+                System.out.println("Zapis wczytany pomyślnie");
             }
-            System.out.println("Plik zapisu uszkodzony:");
-            switch (fields.length) {
-                case 0:
-                    System.out.println("Plik zapisu uszkodzony:");
-                case 1:
-                    System.out.println("nie wczytano numeru rundy trybu pojedynczego");
-                case 2:
-                    System.out.println("nie wczytano danych trybu przeciwko komputerowi: nie wczytano osiagnięć gracza");
-                case 3:
-                    System.out.println("nie wczytano danych trybu przeciwko komputerowi: nie wczytano osiągnięć komputera");
-                case 4:
-                    System.out.println("nie wczytano danych trybu przeciwko komputerowi: nie wczytano ilości rund z komputerem");
-                case 5:
-                    System.out.println("nie wczytano poziomu trudności");
-                    break;
-                case 6:
-
-                    System.out.println("Zapis wczytany pomyślnie");
-                default:
-                    System.out.println("nie wczytane osiagniecia zostały wyzerowane");
+            catch (ArrayIndexOutOfBoundsException e) {
+                 Player newPlayer = new Player(nick, 0, 0);
+                savedGame = new Game(newPlayer, 0, 0, 1);
+                System.out.println("Plik zapisu uszkodzony: Rozpoczęto nową grę.");
             }
-        }
+
         savedGame.adjustDifficulty(savedGame.getDifficulty());
         return savedGame;
     }

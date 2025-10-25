@@ -8,6 +8,7 @@ import java.util.*;
  */
 public abstract class Helpers {
     private final static String saveAndQuit = "Zapisać i wrócić do menu głównego? [t/n]";
+    private final static String machineName = "01001101_01100001_01100011_01101000_01101001_01101110_01100101_00100000_01010011_01110000_01101001_01110010_01101001_01110100";
 
     public static String verifyInput(String input, String allowed) {//YAGNI!
         String[] allowedOptions = allowed.split(",");
@@ -27,10 +28,10 @@ public abstract class Helpers {
         boolean playGame = true;
         Game game = new Game(player);
         player = game.getPlayer();
-        int round = game.getRoundMachine();
+        int round = game.getRoundAgainstMachine();
 
         System.out.println("Masz 3 próby na odgadniecie liczby");
-        System.out.printf("W każdej rundzie do zdobycia są %s pkt, każda błędna odpowiedź to %s pkt mniej", 3 * game.getDifficulty(), game.getDifficulty());
+        System.out.printf("W każdej rundzie do zdobycia są %s pkt, każda błędna odpowiedź to %s pkt mniej%n", 3 * game.getDifficulty(), game.getDifficulty());
 
         do {
             game.round(round + 1, max);
@@ -50,14 +51,14 @@ public abstract class Helpers {
     public static void againstMachine(int max, Player human) {
         //computer guesses
         boolean playGame = true;
-        //Player player = new Player("01001101_01100001_01100011_01101000_01101001_01101110_01100101_00100000_01010011_01110000_01101001_01110010_01101001_01110100");
 
-        Game game = new Game(human);
-        Player player = game.getPlayer();
-        int round = game.getRoundMachine();
+        Game game = new Game(machineName);//player to null
+        Player machine = new Player(machineName);
+        int round = game.getRoundAgainstMachine();
         int numberToGuess = 0;
         if (game.getMaxNumber() != max) {
-            game.setMaxNumber(game.getMaxNumber());
+            game.setMaxNumber(game.getDifficulty());
+            max = game.getMaxNumber();
         }
 
         do {
@@ -67,7 +68,7 @@ public abstract class Helpers {
                 numberToGuess = new Scanner(System.in).nextInt();
             } catch (Exception e) {
                 System.out.printf("Nie wprowadziłeś liczby całkowitej. Komputer dostaje %s pkt", game.getDifficulty());
-                player.addMachinePoints(game.getDifficulty());
+                machine.addPoints(game.getDifficulty());
                 round++;
                 continue;
             }
@@ -75,7 +76,7 @@ public abstract class Helpers {
             if (numberToGuess < 0 || numberToGuess > max) {
                 System.out.println("Podałeś liczbę spoza zakresu");
                 System.out.printf("komputer dostaje %s pkt", game.getDifficulty());
-                player.addMachinePoints(game.getDifficulty());
+                machine.addPoints(game.getDifficulty());
                 round++;
                 continue;
             }
@@ -86,8 +87,8 @@ public abstract class Helpers {
             boolean answer = Menu.yesNoMenu();
             if (answer) {
                 playGame = false;
-                game.save(player, game);
-                System.out.printf("Komputer zdobył sumarycznie %s pkt%n%n", game.getPlayer().getMachinePoints());
+                game.save(machine, game);
+                System.out.printf("Komputer zdobył sumarycznie %s pkt%n%n", game.getPlayer().getPoints());
             }
             round++;
 
@@ -97,18 +98,20 @@ public abstract class Helpers {
 
     public static void manVsMachine(int max, Player human) {
         boolean playGame = true;
-        Player machine = new Player("101100");
+        Player machine = new Player(machineName);
         Game game = new Game(FileManager.getPlayer(human.getNick()), 1);
         game = game.read(human.getNick());
         Player man = game.getPlayer();
-        int round = 0;
+        int round = game.getRoundAgainstMachine();
         int numberToGuess = 0;
+        if (game.getMaxNumber() != max) {
+            game.setMaxNumber(game.getDifficulty());
+            max = game.getMaxNumber();
+        }
 
-        System.out.println("W tym trybie na zmianę z komputerem zgadujecie liczbę");
+        System.out.printf("W tym trybie na zmianę z komputerem zgadujecie liczbę z przedziału 0-%s%n", max);
         do {
-            int min = 0;
             System.out.printf("RUNDA %s  %n", round);
-            int attempt = 0;
             boolean guessed = false;
             Player[] players = {machine, man};
             List<Player> playerList = new ArrayList<>(List.of(players));
@@ -117,17 +120,17 @@ public abstract class Helpers {
             numberToGuess = (int) (Math.random() * max + 1);
             do {
 
-                System.out.println("hint: " + numberToGuess);
+                //System.out.println("hint: " + numberToGuess);
                 for (Player player : players) {
                     if (guessed) {
                         round++;
                         continue;
                     }
                     if (player.equals(machine)) {
-                        guessed = game.roundMachine(round + 1, max, numberToGuess);
+                        guessed = game.roundMachine(round, max, numberToGuess);
                     } else {
                         System.out.printf("Zgaduje %s%n", player.getNick());
-                        guessed = game.roundHuman(round + 1, numberToGuess);
+                        guessed = game.roundHuman(round, numberToGuess);
                     }
                 }
                 round++;
@@ -139,8 +142,9 @@ public abstract class Helpers {
             if (answer) {
                 playGame = false;
                 game.save(man, game);
+                game.save(machine, game);
                 System.out.printf("Gra zapisana.%nSumarycznie %s zdobył %s pkt.%n", game.getPlayer().getNick(), game.getPlayer().getPointsAgainstMachine());
-                System.out.printf("Komputer zdobył sumarycznie %s pkt%n%n", game.getPlayer().getMachinePoints());
+                System.out.printf("Komputer zdobył sumarycznie %s pkt%n%n", machine.getPointsAgainstMachine());
             }
         } while (playGame);
 

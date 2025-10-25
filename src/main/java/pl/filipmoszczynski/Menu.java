@@ -9,13 +9,13 @@ public class Menu {
     public static boolean yesNoMenu(){
         do{
             String answer = new Scanner(System.in).nextLine();
-            if (answer.equalsIgnoreCase("t")) {
+            if (answer.trim().equalsIgnoreCase("t")) {
                 return true;
             }
-            if (answer.equalsIgnoreCase("n")) {
+            if (answer.trim().equalsIgnoreCase("n")) {
                 return false;
             }
-            if (!answer.equalsIgnoreCase("n") && !answer.equalsIgnoreCase("t")) {
+            if (!answer.trim().equalsIgnoreCase("n") && !answer.trim().equalsIgnoreCase("t")) {
                 System.out.println("Nie rozumiem, użyj 't' lub 'n'");
             }
         }

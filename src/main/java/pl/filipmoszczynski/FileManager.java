@@ -21,8 +21,7 @@ public class FileManager {
         String fileContent = player.getPoints() + ":"
                 + game.getRound() + ":"
                 + player.getPointsAgainstMachine() + ":"
-                + player.getMachinePoints() + ":"
-                + game.getRoundMachine() + ":"
+                + game.getRoundAgainstMachine() + ":"
                 + game.getDifficulty();
 
         File file = new File(pathname.toString());
