@@ -1,5 +1,6 @@
 package pl.filipmoszczynski;
 
+import java.io.Console;
 import java.util.Scanner;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -15,9 +16,8 @@ public class Main {
         boolean playGame = true;
         int max = 100;
 
-
         do{
-        System.out.printf("%nWybierz tryb: %n[1]Ty zgadujesz - komputer podaje liczbę%n[2]Komputer zgaduje - ty podajesz liczbę%n");
+        System.out.printf("%n%nWybierz tryb: %n[1]Ty zgadujesz - komputer podaje liczbę%n[2]Komputer zgaduje - ty podajesz liczbę%n");
         System.out.printf("[3]Rywalizujesz z komputerem%n");
         System.out.println("[4]Zamknij grę");
 
