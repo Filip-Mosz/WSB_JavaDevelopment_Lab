@@ -3,12 +3,11 @@ package pl.filipmoszczynski;
 import java.util.*;
 
 /**
- * class consisting static helper methods that don't fit anywhere else
- *
+ * class consisting static helper methods that don't fit anywhere else *
  */
 public abstract class Helpers {
-    private final static String saveAndQuit = "Zapisać i wrócić do menu głównego? [t/n]";
-    private final static String machineName = "01001101_01100001_01100011_01101000_01101001_01101110_01100101_00100000_01010011_01110000_01101001_01110010_01101001_01110100";
+    final static String saveAndQuit = "Zapisać i wrócić do menu głównego? [t/n]";
+    final static String machineName = "01001101_01100001_01100011_01101000_01101001_01101110_01100101_00100000_01010011_01110000_01101001_01110010_01101001_01110100";
 
     public static String verifyInput(String input, String allowed) {//YAGNI!
         String[] allowedOptions = allowed.split(",");
@@ -34,7 +33,7 @@ public abstract class Helpers {
         System.out.printf("W każdej rundzie do zdobycia są %s pkt, każda błędna odpowiedź to %s pkt mniej%n", 3 * game.getDifficulty(), game.getDifficulty());
 
         do {
-            game.round(round + 1, max);
+            game.round(round + 1, max, player.getNick());
 
             System.out.println(saveAndQuit);
             boolean answer = Menu.yesNoMenu();
@@ -99,8 +98,8 @@ public abstract class Helpers {
     public static void manVsMachine(int max, Player human) {
         boolean playGame = true;
         Player machine = new Player(machineName);
-        Game game = new Game(FileManager.getPlayer(human.getNick()), 1);
-        game = game.read(human.getNick());
+        Game game = new Game(FileManager.getPlayerData(human.getNick()), 1);
+        game = game.read(human.getNick(), true);
         Player man = game.getPlayer();
         int round = game.getRoundAgainstMachine();
         int numberToGuess = 0;
@@ -110,43 +109,55 @@ public abstract class Helpers {
         }
 
         System.out.printf("W tym trybie na zmianę z komputerem zgadujecie liczbę z przedziału 0-%s%n", max);
-        do {
-            System.out.printf("RUNDA %s  %n", round);
-            boolean guessed = false;
             Player[] players = {machine, man};
-            List<Player> playerList = new ArrayList<>(List.of(players));
-            Collections.shuffle(playerList);
-            players = playerList.toArray(players);
-            numberToGuess = (int) (Math.random() * max + 1);
-            do {
+            game.roundMultiplayer(round, max, players);
+    }
 
-                //System.out.println("hint: " + numberToGuess);
-                for (Player player : players) {
-                    if (guessed) {
-                        round++;
-                        continue;
-                    }
-                    if (player.equals(machine)) {
-                        guessed = game.roundMachine(round, max, numberToGuess);
-                    } else {
-                        System.out.printf("Zgaduje %s%n", player.getNick());
-                        guessed = game.roundHuman(round, numberToGuess);
-                    }
+    public static void multiplayer(Player mainPlayer) {
+        //ask for number of players
+        boolean inputIncorrect = false;
+        int playersCount = 1;
+        int alreadyAssignedPlayers = 1;
+        String prompt = "Podaj liczbę graczy";
+        do{
+            try {
+                System.out.println(prompt);
+                playersCount = new Scanner(System.in).nextInt();
+                if (playersCount < 1) {
+                    throw new IllegalArgumentException(prompt);
+                } else{
+                    inputIncorrect = false;
                 }
-                round++;
+            } catch (Exception e) {
+                prompt = "Podaj liczbę całkowitą, większą niż 1, która reprezentuje ilość uczestników rozgrywki";
+                inputIncorrect = true;
             }
-            while (!guessed);
+        }while(inputIncorrect);
 
-            System.out.println(saveAndQuit);//"zapisać i wyjść do menu?"
-            boolean answer = Menu.yesNoMenu();
-            if (answer) {
-                playGame = false;
-                game.save(man, game);
-                game.save(machine, game);
-                System.out.printf("Gra zapisana.%nSumarycznie %s zdobył %s pkt.%n", game.getPlayer().getNick(), game.getPlayer().getPointsAgainstMachine());
-                System.out.printf("Komputer zdobył sumarycznie %s pkt%n%n", machine.getPointsAgainstMachine());
-            }
-        } while (playGame);
+        Player[] players = new Player[playersCount];
+        Game game = new Game(mainPlayer);
+        players[0] = game.getPlayer();
+        //ask if include computer
+        System.out.println("Dołączyć komputer do rozgrywki? [t/n]");
+        boolean answer = Menu.yesNoMenu();
+        if (answer) {
+            players[1] = Player.read(machineName);
+            alreadyAssignedPlayers++;
+        }
+
+        for (int i = alreadyAssignedPlayers; i < playersCount; i++) {
+            System.out.println("Podaj nick gracza nr " + i);
+            String input = new  Scanner(System.in).nextLine();
+            players[i] = game.read(input, false).getPlayer();
+        }
+
+        System.out.println("\nW tym trybie wszyscy gracze zgadują tą samą liczbę\n Pierwszy, który zgadnie dostaje punkty, a kolejność zgadywania jest losowana.\n");
+
+        game.setPlayers(players);
+        game.setMaxNumber(game.getDifficulty());
+        game.setMachineMaxGuess(game.getMaxNumber());
+        game.roundMultiplayer(game.getRoundMultiplayer(), game.getMaxNumber(), players);
 
     }
+
 }

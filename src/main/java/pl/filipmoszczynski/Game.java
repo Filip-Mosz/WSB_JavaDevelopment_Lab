@@ -1,16 +1,68 @@
 package pl.filipmoszczynski;
 
-import java.util.Scanner;
+import java.util.*;
 
 public class Game {
-    Player player;
+    Player[] players;
     int round;
     int roundAgainstMachine;
     int difficulty;
     int maxNumber;
+    int roundMultiplayer;
 
     private int machineMaxGuess;
     private int machineMinGuess;
+
+
+    public Game (String nick) {
+        Game game  = new Game(nick, 1);
+        game = game.read(nick, true);
+        this.players = game.getPlayers();
+        this.round = game.getRound();
+        this.roundAgainstMachine = game.getRoundAgainstMachine();
+        this.difficulty = game.getDifficulty();
+    }
+
+    public Game(Player player) {
+        Game game  = new Game(player.getNick(), 1);
+        game = game.read(player.getNick(), true);
+        this.players = new Player[]{player};
+        this.round = game.getRound();
+        this.roundAgainstMachine = game.getRoundAgainstMachine();
+        this.difficulty = game.getDifficulty();
+    }
+
+    public Game(Player[] players) {
+        Game game  = new Game(players[0].getNick(), 1);
+        game = game.read(players[0].getNick(), true);
+        this.players = players;
+        this.round = game.getRound();
+        this.roundAgainstMachine = game.getRoundAgainstMachine();
+        this.difficulty = game.getDifficulty();
+    }
+
+    public Game(String nick, int difficulty) {
+        this.players = new Player[]{new Player(nick)};
+        this.difficulty = difficulty;
+    }
+
+    public Game(Player player, int difficulty) {
+        this.players = new Player[]{player};
+        this.difficulty = difficulty;
+    }
+
+    public Game(Player player, int round, int difficulty) {
+        this.players = new Player[]{player};
+        this.round = round;
+        this.difficulty = difficulty;
+    }
+
+    public Game(Player player, int round, int roundAgainstMachine, int difficulty) {
+        this.players = new Player[]{player};
+        this.round = round;
+        this.roundAgainstMachine = roundAgainstMachine;
+        this.difficulty = difficulty;
+    }
 
     public int getMaxNumber() {
         return maxNumber;
@@ -27,49 +79,6 @@ public class Game {
         };
     }
 
-    public Game (String nick) {
-        Game game  = new Game(nick, 1);
-        game = game.read(nick);
-        //game.setDifficulty();
-        this.player = game.getPlayer();
-        this.round = game.getRound();
-        this.roundAgainstMachine = game.getRoundAgainstMachine();
-        this.difficulty = game.getDifficulty();
-    }
-
-    public Game(Player player) {
-        Game game  = new Game(player.getNick(), 1);
-        game = game.read(player.getNick());
-        //game.setDifficulty();
-        this.player = player;
-        this.round = game.getRound();
-        this.roundAgainstMachine = game.getRoundAgainstMachine();
-        this.difficulty = game.getDifficulty();
-    }
-
-    public Game(String nick, int difficulty) {
-        this.player = new Player(nick);
-        this.difficulty = difficulty;
-    }
-
-    public Game(Player player, int difficulty) {
-        this.player = player;
-        this.difficulty = difficulty;
-    }
-
-    public Game(Player player, int round, int difficulty) {
-        this.player = player;
-        this.round = round;
-        this.difficulty = difficulty;
-    }
-
-    public Game(Player player, int round, int roundAgainstMachine, int difficulty) {
-        this.player = player;
-        this.round = round;
-        this.roundAgainstMachine = roundAgainstMachine;
-        this.difficulty = difficulty;
-    }
-
     public int getRound() {
         return this.round;
     }
@@ -78,8 +87,12 @@ public class Game {
         return this.roundAgainstMachine;
     }
 
+    public Player[] getPlayers() {
+        return this.players;
+    }
+
     public Player getPlayer() {
-        return this.player;
+        return this.players[0];
     }
 
     public int getDifficulty() {
@@ -115,10 +128,26 @@ public class Game {
             }
         } catch (Exception e) {
             System.out.println("Nie wprowadziłeś liczby całkowitej; no to masz najwyższy poziom trudności");
+            this.difficulty = 3;
             return 10000;
         }
-        this.difficulty = 1;
         return 100;
+    }
+
+    public int getRoundMultiplayer() {
+        return roundMultiplayer;
+    }
+
+    public void setRoundMultiplayer(int roundMultiplayer) {
+        this.roundMultiplayer = roundMultiplayer;
+    }
+
+    void setPlayers(Player[] players) {
+        this.players = players;
+    }
+
+    void setMachineMaxGuess(int max) {
+        this.machineMaxGuess = max;
     }
 
     public int adjustDifficulty(int difficulty) {
@@ -128,7 +157,7 @@ public class Game {
             case 3 -> "trudny";
             default -> "trudny";
         };
-        System.out.printf("Obecny poziom trudności to: %s%nChcesz go zmienić> [t/n]", diffLevel);
+        System.out.printf("Obecny poziom trudności to: %s%nChcesz go zmienić? [t/n]%n", diffLevel);
         boolean answer = Menu.yesNoMenu();
         if (answer) {
             this.setDifficulty();
@@ -136,17 +165,20 @@ public class Game {
         return difficulty;
     }
 
-    void round(int roundNum, int max) {
+
+    void round(int roundNum, int max, String playerName) {
         int currNum = (int)(Math.random() * max + 1);
 
-        roundMain(roundNum, currNum, false);
+        roundMain(roundNum, currNum, false, playerName);
     }
 
-    boolean roundHuman(int roundNum, int numberToGuess) {
-        return roundMain(roundNum, numberToGuess, true);
+    boolean roundHuman(int roundNum, int numberToGuess, String playerName) {
+        return roundMain(roundNum, numberToGuess, true, playerName);
     }
 
-    boolean roundMain(int roundNum, int currNum, boolean againstMachine) {
+    boolean roundMain(int roundNum, int currNum, boolean againstMachine, String playerName) {
+        int playerIndex = this.findPlayerIndex(playerName);
+
         System.out.printf("RUNDA %s  %n", roundNum);
         int attempt = 0;
         boolean guessed = false;
@@ -162,9 +194,11 @@ public class Game {
             int points = 3 - attempt;
             if (guess == currNum) {
                 guessed = true;
+                this.machineMaxGuess = this.maxNumber;
+                this.machineMinGuess = 0;
                 if (againstMachine) {
-                    player.addPointsAgainstMachine(points*this.difficulty);
-                }else{player.addPoints(points*this.difficulty);}
+                    this.players[playerIndex].addPointsAgainstMachine(points*this.difficulty);
+                }else{this.players[playerIndex].addPoints(points*this.difficulty);}
             } else {
                 String hint = guess > currNum ? "Za wysoko" : "Za nisko";
                 System.out.println(hint);
@@ -183,25 +217,26 @@ public class Game {
     }
 
     boolean roundMachine(int roundNum, int max , int numberToGuess) {
-        int min = 0;
 
         System.out.printf("RUNDA %s  %n", roundNum);
         int attempt = 0;
         boolean guessed = false;
         while (attempt < 3 && !guessed) {
             System.out.printf("Podejście %s%n", attempt+1);
-            int guess = (int) ((Math.random() * (max - min)) + min);
+            int guess = (int) ((Math.random() * (this.machineMaxGuess - this.machineMinGuess)) + this.machineMinGuess);
             System.out.printf("Komputer zgaduje: %s%n", guess);
             int points = 3 - attempt;
             String pointsText = points == 1 ? "punkt" :"punkty";
             if (guess == numberToGuess) {
                 guessed = true;
-                player.addMachinePoints(points*this.difficulty);
+                this.machineMaxGuess = max;
+                this.machineMinGuess = 0;
+                players[0].addMachinePoints(points*this.difficulty);
             } else {
-                int hint = guess > numberToGuess ? -1 : 1;
-                if(hint == -1) {
+                int botHint = guess > numberToGuess ? -1 : 1;
+                if(botHint == -1) {
                     this.machineMaxGuess = guess;
-                }else if(hint == 1) {
+                }else if(botHint == 1) {
                     this.machineMinGuess = guess;
                 }
             }
@@ -220,16 +255,62 @@ public class Game {
                 System.out.println("coś nie daje mi spać :(");
             }
         }
-        this.round = roundNum;
+        this.roundMultiplayer = roundNum++;
+
         return guessed;
+    }
+
+    boolean roundMultiplayer(int roundNum, int max, Player[] players) {
+        boolean playGame = true;
+        do {
+            boolean guessed = false;
+            List<Player> playerList = new ArrayList<>(List.of(players));
+            Collections.shuffle(playerList);
+            players = playerList.toArray(players);
+            int numberToGuess = (int) (Math.random() * max + 1);
+            do {
+
+                for (Player player : players) {
+                    if (guessed) {
+                        this.roundMultiplayer = roundNum;
+                        continue;
+                    }
+                    if (player.getNick().equals(Helpers.machineName)) {
+                        guessed = this.roundMachine(roundNum, max, numberToGuess);
+                    } else {
+                        System.out.printf("Zgaduje %s%n", player.getNick());
+                        guessed = this.roundHuman(roundNum, numberToGuess, player.getNick());
+                    }
+                }
+                roundNum++;
+            }
+            while (!guessed);
+
+            System.out.println(Helpers.saveAndQuit);//"zapisać i wyjść do menu?"
+            boolean answer = Menu.yesNoMenu();
+            if (answer) {
+                playGame = false;
+                for (Player player : players) {
+                    this.save(player, this);
+                }
+                for (Player player : players) {
+                    String playerName = player.getNick();
+                    if (playerName.equals(Helpers.machineName)) {
+                        playerName = "Komputer";
+                    }
+                System.out.printf("Sumarycznie %s zdobył %s pkt.%n", playerName, player.getPointsAgainstMachine());
+                }
+            }
+        } while (playGame);
+        return true;
     }
 
     void save(Player player, Game game) {
         FileManager.saveFile(player, game);
     }
 
-    Game read(String nick) {
-        String content = FileManager.getPlayer(nick);
+    Game read(String nick, boolean changeDifficulty) {
+        String content = FileManager.getPlayerData(nick);
 
         if (content.isEmpty()) {
             Game newGame = new Game(nick, 0);
@@ -242,9 +323,10 @@ public class Game {
         Game savedGame = null;
 
             try {
-                playerOut = new Player(nick, Integer.parseInt(fields[0]), Integer.parseInt(fields[2]));
+                playerOut = new Player(nick, Integer.parseInt(fields[0]), Integer.parseInt(fields[2]), Integer.parseInt(fields[5]));
                 savedGame = new Game(playerOut, Integer.parseInt(fields[1]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
-                System.out.println("Znaleziono zapis gracza; wczytać? [t/n]\nOdmowa rozpoczyna nową grę, a zapis zostanie usunięty.");
+
+                System.out.printf("Znaleziono zapis gracza %s; wczytać? [t/n]\nOdmowa rozpoczyna nową grę, a zapis zostanie usunięty.%n", playerOut.getNick());
                 if (!Menu.yesNoMenu()) {
                     Game newGame = new Game(nick,1);
                     newGame.setDifficulty();
@@ -253,12 +335,23 @@ public class Game {
                 System.out.println("Zapis wczytany pomyślnie");
             }
             catch (ArrayIndexOutOfBoundsException e) {
-                 Player newPlayer = new Player(nick, 0, 0);
+                 Player newPlayer = new Player(nick, 0, 0, 0);
                 savedGame = new Game(newPlayer, 0, 0, 1);
                 System.out.println("Plik zapisu uszkodzony: Rozpoczęto nową grę.");
             }
 
-        savedGame.adjustDifficulty(savedGame.getDifficulty());
+        if (changeDifficulty){
+            savedGame.adjustDifficulty(savedGame.getDifficulty());
+        }
         return savedGame;
+    }
+
+    private int findPlayerIndex(String nick){
+        for (int i = 0; i < players.length; i++) {
+            if (players[i].getNick().equals(nick)) {
+                return i;
+            }
+        }
+        return-1;
     }
 }

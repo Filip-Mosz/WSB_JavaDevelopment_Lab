@@ -8,7 +8,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class FileManager {
@@ -22,7 +22,8 @@ public class FileManager {
                 + game.getRound() + ":"
                 + player.getPointsAgainstMachine() + ":"
                 + game.getRoundAgainstMachine() + ":"
-                + game.getDifficulty();
+                + game.getDifficulty() + ":"
+                + game.getRoundMultiplayer();
 
         File file = new File(pathname.toString());
 
@@ -46,7 +47,7 @@ public class FileManager {
         }
         else{
             try {
-                Files.write(pathname, Arrays.asList(fileContent));
+                Files.write(pathname, List.of(fileContent));
             } catch (IOException x) {
                 System.err.format("createFile error: %s%n", x);
             }
@@ -63,7 +64,7 @@ public class FileManager {
         }
     }
 
-    static String getPlayer(String player) {
+    static String getPlayerData(String player) {
         File myObj = new File(saveDirectory+ player +".txt");
         StringBuilder content = new StringBuilder();
         // try-with-resources: Scanner will be closed automatically
