@@ -218,6 +218,7 @@ public class Game {
 
     boolean roundMachine(int roundNum, int max , int numberToGuess) {
 
+        this.setMachineMaxGuess(max);
         System.out.printf("RUNDA %s  %n", roundNum);
         int attempt = 0;
         boolean guessed = false;
@@ -226,7 +227,6 @@ public class Game {
             int guess = (int) ((Math.random() * (this.machineMaxGuess - this.machineMinGuess)) + this.machineMinGuess);
             System.out.printf("Komputer zgaduje: %s%n", guess);
             int points = 3 - attempt;
-            String pointsText = points == 1 ? "punkt" :"punkty";
             if (guess == numberToGuess) {
                 guessed = true;
                 this.machineMaxGuess = max;
@@ -242,11 +242,10 @@ public class Game {
             }
             if (attempt == 2 && !guessed) {
                 points = 0;
-                pointsText = "punktów";
             }
 
             if (attempt == 2 || guessed) {
-                System.out.printf("Komputer zdobywa %s %s.%n%n", points*this.difficulty, pointsText);
+                System.out.printf("Komputer zdobywa %s pkt.%n%n", points*this.difficulty);
             }
             attempt++;
             try {
@@ -285,11 +284,16 @@ public class Game {
                 roundNum++;
             }
             while (!guessed);
-
-            System.out.println(Helpers.saveAndQuit);//"zapisać i wyjść do menu?"
+            //continue
+            System.out.println(Helpers.comtinuePrompt);
             boolean answer = Menu.yesNoMenu();
-            if (answer) {
+            if (!answer) {
                 playGame = false;
+            }
+            //save
+            System.out.println(Helpers.savePrompt);//"zapisać i wyjść do menu?"
+            answer = Menu.yesNoMenu();
+            if (answer) {
                 for (Player player : players) {
                     this.save(player, this);
                 }
@@ -326,7 +330,9 @@ public class Game {
                 playerOut = new Player(nick, Integer.parseInt(fields[0]), Integer.parseInt(fields[2]), Integer.parseInt(fields[5]));
                 savedGame = new Game(playerOut, Integer.parseInt(fields[1]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
 
-                System.out.printf("Znaleziono zapis gracza %s; wczytać? [t/n]\nOdmowa rozpoczyna nową grę, a zapis zostanie usunięty.%n", playerOut.getNick());
+                String playerNick = playerOut.getNick();
+                if (playerNick.equals(Helpers.machineName)) {playerNick = "Komputer";}
+                System.out.printf("Znaleziono zapis gracza %s; wczytać? [t/n]\nOdmowa rozpoczyna nową grę, a zapis zostanie usunięty.%n", playerNick);
                 if (!Menu.yesNoMenu()) {
                     Game newGame = new Game(nick,1);
                     newGame.setDifficulty();

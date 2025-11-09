@@ -6,7 +6,8 @@ import java.util.*;
  * class consisting static helper methods that don't fit anywhere else *
  */
 public abstract class Helpers {
-    final static String saveAndQuit = "Zapisać i wrócić do menu głównego? [t/n]";
+    final static String savePrompt = "Zapisać? [t/n]";
+    final static String comtinuePrompt = "Wrócić do menu głównego? [t/n]";
     final static String machineName = "01001101_01100001_01100011_01101000_01101001_01101110_01100101_00100000_01010011_01110000_01101001_01110010_01101001_01110100";
 
     public static String verifyInput(String input, String allowed) {//YAGNI!
@@ -35,10 +36,16 @@ public abstract class Helpers {
         do {
             game.round(round + 1, max, player.getNick());
 
-            System.out.println(saveAndQuit);
+            //continue
+            System.out.println(comtinuePrompt);
             boolean answer = Menu.yesNoMenu();
-            if (answer) {
+            if (!answer) {
                 playGame = false;
+            }
+            //save
+            System.out.println(savePrompt);
+            answer = Menu.yesNoMenu();
+            if (answer) {
                 game.save(player, game);
                 System.out.printf("Gra zapisana.%nSumarycznie masz %s pkt.", game.getPlayer().getPoints());
             }
@@ -51,7 +58,7 @@ public abstract class Helpers {
         //computer guesses
         boolean playGame = true;
 
-        Game game = new Game(machineName);//player to null
+        Game game = new Game(machineName);
         Player machine = new Player(machineName);
         int round = game.getRoundAgainstMachine();
         int numberToGuess = 0;
@@ -62,7 +69,7 @@ public abstract class Helpers {
 
         do {
 
-            System.out.printf("Podaj liczbę z zakresu 0-%s, którą ma odgadnąć komputer: %nOszukiwanie będzie karane%n", max);
+            System.out.printf("%nPodaj liczbę z zakresu 0-%s, którą ma odgadnąć komputer: %nOszukiwanie będzie karane%n", max);
             try {
                 numberToGuess = new Scanner(System.in).nextInt();
             } catch (Exception e) {
@@ -82,10 +89,16 @@ public abstract class Helpers {
 
             game.roundMachine(round + 1, max, numberToGuess);
 
-            System.out.println(saveAndQuit);//"zapisać i wyjść do menu?"
+            //continue
+            System.out.println(comtinuePrompt);
             boolean answer = Menu.yesNoMenu();
             if (answer) {
                 playGame = false;
+            }
+            //save
+            System.out.println(savePrompt);
+            answer = Menu.yesNoMenu();
+            if (answer) {
                 game.save(machine, game);
                 System.out.printf("Komputer zdobył sumarycznie %s pkt%n%n", game.getPlayer().getPoints());
             }
