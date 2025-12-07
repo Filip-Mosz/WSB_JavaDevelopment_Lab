@@ -10,18 +10,7 @@ public abstract class Helpers {
     final static String comtinuePrompt = "Wrócić do menu głównego? [t/n]";
     final static String machineName = "01001101_01100001_01100011_01101000_01101001_01101110_01100101_00100000_01010011_01110000_01101001_01110010_01101001_01110100";
 
-    public static String verifyInput(String input, String allowed) {//YAGNI!
-        String[] allowedOptions = allowed.split(",");
-
-        String[] matched = (String[]) Arrays.stream(allowedOptions).filter(x -> Objects.equals(x, input)).toArray();
-        if (matched.length == 0) {
-            return "Nie rozpoznano opcji/n dostępne opcje to: " + input;
-        }
-        return "";
-    }
-
     /**
-     * @param max    represents top number to be guessed
      * @param player Player-class object representing user
      */
     public static void singlePlayerRound(int max, Player player) {//user guesses
@@ -29,9 +18,12 @@ public abstract class Helpers {
         Game game = new Game(player);
         player = game.getPlayer();
         int round = game.getRoundAgainstMachine();
+        if (game.getMaxNumber() != max) {
+            max = game.getMaxNumber();
+        }
 
         System.out.println("Masz 3 próby na odgadniecie liczby");
-        System.out.printf("W każdej rundzie do zdobycia są %s pkt, każda błędna odpowiedź to %s pkt mniej%n", 3 * game.getDifficulty(), game.getDifficulty());
+        System.out.printf("W każdej rundzie do zdobycia są %s pkt, każda błędna odpowiedź to %s pkt mniej%n", 3 * game.getReward(), game.getReward());
 
         do {
             game.round(round + 1, max, player.getNick());
@@ -39,7 +31,7 @@ public abstract class Helpers {
             //continue
             System.out.println(comtinuePrompt);
             boolean answer = Menu.yesNoMenu();
-            if (!answer) {
+            if (answer) {
                 playGame = false;
             }
             //save
@@ -63,7 +55,6 @@ public abstract class Helpers {
         int round = game.getRoundAgainstMachine();
         int numberToGuess = 0;
         if (game.getMaxNumber() != max) {
-            game.setMaxNumber(game.getDifficulty());
             max = game.getMaxNumber();
         }
 
@@ -115,9 +106,7 @@ public abstract class Helpers {
         game = game.read(human.getNick(), true);
         Player man = game.getPlayer();
         int round = game.getRoundAgainstMachine();
-        int numberToGuess = 0;
         if (game.getMaxNumber() != max) {
-            game.setMaxNumber(game.getDifficulty());
             max = game.getMaxNumber();
         }
 

@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Scanner;
 
 public class FileManager {
-        //savefile construction
-        //pointsSinglePlayer : roundSinglePlayer
     private final static String saveDirectory = "./src/main/resources/saves/";
 
     static void saveFile(Player player, Game game) {
@@ -23,7 +21,9 @@ public class FileManager {
                 + player.getPointsAgainstMachine() + ":"
                 + game.getRoundAgainstMachine() + ":"
                 + game.getDifficulty() + ":"
-                + game.getRoundMultiplayer();
+                + game.getRoundMultiplayer() + ":"
+                + game.getMaxNumber() + ":"
+                + (game.isCustomDifficulty() ? 1:0);
 
         File file = new File(pathname.toString());
 

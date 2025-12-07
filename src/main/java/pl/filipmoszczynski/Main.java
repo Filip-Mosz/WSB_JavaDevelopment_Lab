@@ -5,12 +5,6 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
 
-        //todo: OK pkt 1. komputer jako gracz
-        //todo: OK pkt 2. rozgrywka wieloosobowa; ilość graczy na początku rozgrywki -> konstruktor gdzie Game przyjmuje listę Player zamiast obiektu
-        //todo: pkt 3. kolejna rozgrywka bez koniecznosci zapisu -> rozbudowa menu "zapisz i zakończ"
-        //todo: pkt 4. własny poziom trudności - gracz podaje przedział -> poziom trudności to int LUB String z przedziałem, w drugiej opcji punkty zależne od rozpiętości przedziału
-        //todo: pkt 5. rozszerzyć plik zapisu o graczy z ktorymi konkurował gracz wliczajac komputer,rundy multiplayer, punkty multiplayer, własny poziom trudności
-
         System.out.println("Witaj w 'Guessing Game'");
         System.out.println("Podaj nick gracza ");
         String nick = new Scanner(System.in).nextLine();
